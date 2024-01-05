@@ -5,15 +5,19 @@ import Vapor
 
 
 public final class HeaderCodeAuth : Middleware {
+    let authCode : String
+    
     public func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
         guard let header = request.headers.first(name: "auth") else {
             return request.eventLoop.makeFailedFuture(Abort(.unauthorized))
         }
-        guard header == "J1VD9qLE7kw;EU?t^z\"=Q36aajK" else {
+        guard header == authCode else {
             return request.eventLoop.makeFailedFuture(Abort(.unauthorized))
         }
         return next.respond(to: request)
     }
     
-    public init() {}
+    public init(_ authCode : String) {
+        self.authCode = authCode
+    }
 }

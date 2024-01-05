@@ -5,9 +5,11 @@ import Vapor
 import FluentPostgresDriver
 
 struct UserRouter: RouteCollection {
+    let headerAuth : HeaderCodeAuth
+    
      func boot(routes: RoutesBuilder) throws {
          
-         let tokenProtected = routes.grouped(HeaderCodeAuth())
+         let tokenProtected = routes.grouped(headerAuth)
          
          tokenProtected.post("users") { req -> EventLoopFuture<User> in
             try User.Create.validate(content: req)
@@ -30,7 +32,9 @@ struct UserRouter: RouteCollection {
         }
     }
     
-    init() {}
+    init(authCode: String) {
+        self.headerAuth = HeaderCodeAuth(authCode)
+    }
     
     
 }
