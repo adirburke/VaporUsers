@@ -7,16 +7,13 @@ let package = Package(
        .macOS(.v13)
     ],
     dependencies: [
-        // 💧 A server-side Swift web framework.
         .package(url: "https://github.com/vapor/vapor.git", from: "4.89.0"),
-        // 🗄 An ORM for SQL and NoSQL databases.
         .package(url: "https://github.com/vapor/fluent.git", from: "4.8.0"),
-        // 🐘 Fluent driver for Postgres.
         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.7.2"),
     ],
     targets: [
-        .executableTarget(
-            name: "App",
+        .target(
+            name: "Users",
             dependencies: [
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
@@ -24,7 +21,7 @@ let package = Package(
             ]
         ),
         .testTarget(name: "AppTests", dependencies: [
-            .target(name: "App"),
+            .target(name: "Users"),
             .product(name: "XCTVapor", package: "vapor"),
 
             // Workaround for https://github.com/apple/swift-package-manager/issues/6940
