@@ -16,6 +16,7 @@ public final class UserToken: Model, Content {
     
     struct ReturnToken : Content {
         var value: String
+        var userId : UUID
     }
     public static let schema = "user_tokens"
 

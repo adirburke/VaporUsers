@@ -28,7 +28,13 @@ public struct UserRouter: RouteCollection {
             let user = try req.auth.require(User.self)
             let token = try user.generateToken()
             return token.save(on: req.db)
-                .map { UserToken.ReturnToken(value: token.value) }
+                .flatMapThrowing { try UserToken.ReturnToken(value: token.value, userId: user.requireID()) }
+        }
+        
+        allProtected.get("logout") { req async throws -> HTTPStatus in
+            guard let token = req.headers.bearerAuthorization?.token else { throw Abort(.badRequest) }
+            try await UserToken.query(on: req.db).filter(\UserToken.$value == token).delete()
+            return .ok
         }
     }
     
