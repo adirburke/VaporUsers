@@ -18,20 +18,22 @@ public struct UserRouter: RouteCollection {
             return user.save(on: req.db)
                 .map { user }
         }
-         
-         let allProtected = routes
-             .grouped(User.authenticator(database: .psql))
-             .grouped(UserToken.authenticator(database: .psql))
-             .grouped(User.guardMiddleware())
         
-        allProtected.get("login") { req -> EventLoopFuture<UserToken.ReturnToken> in
+        routes
+            .grouped(User.authenticator(database: .psql))
+            .grouped(UserToken.authenticator(database: .psql))
+            .grouped(User.guardMiddleware())
+            .get("login") { req -> EventLoopFuture<UserToken.ReturnToken> in
             let user = try req.auth.require(User.self)
             let token = try user.generateToken()
             return token.save(on: req.db)
                 .flatMapThrowing { try UserToken.ReturnToken(value: token.value, userId: user.requireID()) }
         }
         
-        allProtected.get("logout") { req async throws -> HTTPStatus in
+        routes
+            .grouped(UserToken.authenticator(database: .psql))
+            .grouped(User.guardMiddleware())
+            .get("logout") { req async throws -> HTTPStatus in
             guard let token = req.headers.bearerAuthorization?.token else { throw Abort(.badRequest) }
             try await UserToken.query(on: req.db).filter(\UserToken.$value == token).delete()
             return .ok
