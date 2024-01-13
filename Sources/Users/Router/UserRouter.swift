@@ -23,12 +23,7 @@ public struct UserRouter: RouteCollection {
             .grouped(User.authenticator(database: .psql))
             .grouped(UserToken.authenticator(database: .psql))
             .grouped(User.guardMiddleware())
-            .get("login") { req -> EventLoopFuture<UserToken.ReturnToken> in
-            let user = try req.auth.require(User.self)
-            let token = try user.generateToken()
-            return token.save(on: req.db)
-                .flatMapThrowing { try UserToken.ReturnToken(value: token.value, userId: user.requireID()) }
-        }
+            .get("login", use: login)
         
         routes
             .grouped(UserToken.authenticator(database: .psql))
@@ -44,5 +39,12 @@ public struct UserRouter: RouteCollection {
         self.headerAuth = HeaderCodeAuth(authCode)
     }
     
+    private func login(_ req : Request) throws -> EventLoopFuture<UserToken.ReturnToken> {
+        let user = try req.auth.require(User.self)
+        let token = try user.generateToken()
+        return token.save(on: req.db)
+            .flatMapThrowing { try UserToken.ReturnToken(value: token.value, userId: user.requireID())
+            }
+    }
     
 }
